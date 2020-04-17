@@ -19,13 +19,6 @@ bL=length(bs.images);
 images=[as.images',gs.images',bs.images'];
 counts=[as.counts',gs.counts',bs.counts];
 
-%print all images for convenient viewing
-% if true
-%     cd('C:\Users\mritch3\Desktop\axon counting dataset images');
-%     for i=1:length(images)    
-%         imwrite(images{i},['image_', num2str(i), '.tif'])
-%     end
-% end
     
     
 %create density maps from manual image annotations
@@ -38,7 +31,7 @@ for j=1:length(counts)
     end
     
     %call blurring function
-    counts{j} = imgaussfilt(counts{j}, sigma); 
+    %counts{j} = imgaussfilt(counts{j}, sigma); 
     %counts{j} = adaptiveBlur2(counts{j});
     %calculate count after blurring
     s2=sum(sum(sum(counts{j})))/size(counts{j},3);
@@ -55,8 +48,6 @@ for j=1:length(counts)
 %         pause()
 %     end
 end
-
-
 
 imsAll=[];
 countsAll=[];
@@ -88,6 +79,7 @@ countsAll=[countsAll,counts(147:end)];
 for i=147:length(images) 
     csAll=[csAll,3];
 end
+images=imsAll;
 annotations=countsAll;
 
 %% misc dataset tasks
@@ -106,61 +98,64 @@ for i=1:length(annotations)
 end
 
 
+save('centerpoints.mat','images', 'annotations');
+
+
 %% resize all images and ground truths to be 192x192 pixels
-images=imsAll;
-for j=1:length(images)
-    images{j} = imresize(images{j},[192 192]); 
-    
-    %resize gt but ensure that gt count does not change with the resizing. 
-    s1=sum(sum(sum(gt{j})));
-    gt{j} = imresize(gt{j},[192 192],'bicubic');
-    gt{j}(gt{j}<0)=0;
-    s2=sum(sum(sum(gt{j})));
-    if s2~=0
-        gt{j}=(s1/s2)*gt{j};
-    end
-    
-end
-
-%% save .mat with the dataset
-c=csAll;
-save(['data_updated_3-22-2020'  '.mat'],'images','annotations','gt','countTotals','c');
-indivs=annotations;
-
-%% create confidence interval for images with 4 counts
-back=indivs;
-all=[];
-indivs=back;
-counts=[];
-yes=0;
-for i=1:length(indivs)
-    if size(indivs{i},3)~=1
-        for j=1:4
-            if true
-                indivs{i}(:,:,j)=indivs{i}(:,:,j)/max(max(indivs{i}(:,:,j)));
-                check=isnan(indivs{i}(:,:,j));
-                temp=indivs{i}(:,:,j);
-                temp(check)=0;
-                indivs{i}(:,:,j)=temp;
-            end
-        end
-        new=[sum(sum(indivs{i}(:,:,1)));sum(sum(indivs{i}(:,:,2)));sum(sum(indivs{i}(:,:,3)));sum(sum(indivs{i}(:,:,4)))];
-        counts=[counts,mean(new)];
-        all=[all;new'];
-        ci=paramci(fitdist(new,'Normal'),'parameter','mu');
-    else
-        ci(1)=0;
-        ci(2)=0;
-        new=[sum(sum(indivs{i}(:,:,1)))];
-        all=[all;[0,0,0,0]];
-        counts=[counts,new];
-    end
-    low(i)=ci(1);
-    high(i)=ci(2);
-end
-comp=[low;high];
-out=[comp',c',counts'];
-randVec=load('randVec.mat');
-randVec=randVec.randVec;
-out=out(randVec,:);
-all=all(randVec,:);
+% images=imsAll;
+% for j=1:length(images)
+%     images{j} = imresize(images{j},[192 192]); 
+%     
+%     %resize gt but ensure that gt count does not change with the resizing. 
+%     s1=sum(sum(sum(gt{j})));
+%     gt{j} = imresize(gt{j},[192 192],'bicubic');
+%     gt{j}(gt{j}<0)=0;
+%     s2=sum(sum(sum(gt{j})));
+%     if s2~=0
+%         gt{j}=(s1/s2)*gt{j};
+%     end
+%     
+% end
+% 
+% %% save .mat with the dataset
+% c=csAll;
+% save(['data_updated_3-22-2020'  '.mat'],'images','annotations','gt','countTotals','c');
+% indivs=annotations;
+% 
+% %% create confidence interval for images with 4 counts
+% back=indivs;
+% all=[];
+% indivs=back;
+% counts=[];
+% yes=0;
+% for i=1:length(indivs)
+%     if size(indivs{i},3)~=1
+%         for j=1:4
+%             if true
+%                 indivs{i}(:,:,j)=indivs{i}(:,:,j)/max(max(indivs{i}(:,:,j)));
+%                 check=isnan(indivs{i}(:,:,j));
+%                 temp=indivs{i}(:,:,j);
+%                 temp(check)=0;
+%                 indivs{i}(:,:,j)=temp;
+%             end
+%         end
+%         new=[sum(sum(indivs{i}(:,:,1)));sum(sum(indivs{i}(:,:,2)));sum(sum(indivs{i}(:,:,3)));sum(sum(indivs{i}(:,:,4)))];
+%         counts=[counts,mean(new)];
+%         all=[all;new'];
+%         ci=paramci(fitdist(new,'Normal'),'parameter','mu');
+%     else
+%         ci(1)=0;
+%         ci(2)=0;
+%         new=[sum(sum(indivs{i}(:,:,1)))];
+%         all=[all;[0,0,0,0]];
+%         counts=[counts,new];
+%     end
+%     low(i)=ci(1);
+%     high(i)=ci(2);
+% end
+% comp=[low;high];
+% out=[comp',c',counts'];
+% randVec=load('randVec.mat');
+% randVec=randVec.randVec;
+% out=out(randVec,:);
+% all=all(randVec,:);

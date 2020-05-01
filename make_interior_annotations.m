@@ -57,7 +57,8 @@ for i=1:length(images)
     %mask(image<median(image,'all')-.05)=0;
     %mask=conv2(mask,[1,1,1;1,1,1;1,1,1],'same')>1;
     %mask=uint8(mask);
-    [mask] = getRemainingPixels(mask, image);
+    
+    %[mask] = getRemainingPixels(mask, image);
     
 %     imshow([image, score]);
 %     pause();
@@ -78,14 +79,31 @@ end
 function [mask] = getRemainingPixels (mask, image)
     %feats: intensity, entropy, laplacian, hessian
     ent = entropyfilt(image);
-    [Gmag,Gdir] = imgradient(image);
+    [Gmag,~] = imgradient(image);
     [gx, gy] = gradient(double(image));
     [gxx, gxy] = gradient(gx);
-    [gyx, gyy] = gradient(gy);
+    [~, gyy] = gradient(gy);
     
     
-    featvecs={ent, Gmag, Gdir, gx, gy, gxx, gxy, gyx, gyy};
+    featvecs={ent, Gmag, gx, gy, gxx, gxy, gyy, image};
     feats=zeros(size(image,1)*size(image,2),length(featvecs));
+    
+    for i=1:length(featvecs)
+       featvecs{i}=featvecs{i}/max(max(featvecs{i})); 
+       feats(:,i)=featvecs{i}(:); 
+    end
+    
+%     coeff=pca(feats);
+%     newfeats_all=feats*coeff(:,1:3);
+%     newfeats=newfeats_all(mask(:),:);
+%     scatter3(newfeats(:,1),newfeats(:,2),newfeats(:,3));
+%     hold on
+%     newfeats=newfeats_all(~mask(:),:);
+%     scatter3(newfeats(:,1),newfeats(:,2),newfeats(:,3));
+%     hold off
+    k=3;
+    classes = kmeans (feats,k);
+    imshow(reshape(classes,[size(image,1),size(image,2)])/k);
 
 end
 

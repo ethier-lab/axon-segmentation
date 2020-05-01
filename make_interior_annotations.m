@@ -8,7 +8,7 @@ data=load("centerpoints.mat");
 images=data.images;
 points=data.annotations;
 
-for i=1185:length(images)
+for i=1:length(images)
     nAnnot = size(points{i},3); %how many annotators here
     if nAnnot==1
        nAnnot; 
@@ -57,7 +57,7 @@ for i=1185:length(images)
     %mask(image<median(image,'all')-.05)=0;
     %mask=conv2(mask,[1,1,1;1,1,1;1,1,1],'same')>1;
     %mask=uint8(mask);
-    
+    [mask] = getRemainingPixels(mask, image);
     
 %     imshow([image, score]);
 %     pause();
@@ -72,6 +72,23 @@ for i=1185:length(images)
     end
     %niftiwrite(mask,['images and masks/','nii_',num2str(i,'%04.f'),'.nii'], 'Compression', 'none') ;
        
-    
-    
 end
+
+
+function [mask] = getRemainingPixels (mask, image)
+    %feats: intensity, entropy, laplacian, hessian
+    ent = entropyfilt(image);
+    [Gmag,Gdir] = imgradient(image);
+    [gx, gy] = gradient(double(image));
+    [gxx, gxy] = gradient(gx);
+    [gyx, gyy] = gradient(gy);
+    
+    
+    featvecs={ent, Gmag, Gdir, gx, gy, gxx, gxy, gyx, gyy};
+    feats=zeros(size(image,1)*size(image,2),length(featvecs));
+
+end
+
+
+
+
